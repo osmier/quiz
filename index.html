@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <meta name="description" content="Lern-App für Informatik - Quiz und PDF-Viewer">
+    <title>Lern-App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 15px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            text-align: left;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+        button:hover, button:active {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1em;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .progress {
+            margin: 20px 0;
+            height: 12px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .score-display {
+            font-size: 1.2em;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .timer.warning {
+            color: #f39c12;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .restart-btn {
+            background-color: #2ecc71;
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        .restart-btn:hover {
+            background-color: #27ae60;
+        }
+        .wrong-answers {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .wrong-answer-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .wrong-answer-item h4 {
+            color: #e74c3c;
+            margin-top: 0;
+        }
+        .wrong-answer-item p {
+            margin: 10px 0;
+            color: #7f8c8d;
+        }
+        .correct-answer {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        #pdfViewer {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #pdfViewer iframe {
+            border: none;
+            width: 100%;
+            height: 400px;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .share-btn {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .share-btn:hover {
+            background-color: #2980b9;
+        }
+        .share-icon {
+            width: 20px;
+            height: 20px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            h2 {
+                font-size: 1.3em;
+            }
+            #pdfViewer iframe {
+                height: 300px;
+            }
+            button {
+                padding: 12px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lern-App</h1>
+        <div class="share-buttons">
+            <button class="share-btn" onclick="shareApp()">
+                <svg class="share-icon" viewBox="0 0 24 24" fill="white">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                </svg>
+                Teilen
+            </button>
+        </div>
+        <div id="pdfViewer">
+            <iframe src="Zusammenfassung_Informatik.pdf" width="100%" height="400px"></iframe>
+        </div>
+        <div id="quiz">
+            <h2>Quiz</h2>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="score-display" id="scoreDisplay">Score: 0/0</div>
+            <div class="timer" id="timer"></div>
+            <div id="questionContainer"></div>
+            <button onclick="nextQuestion()" id="nextButton">Nächste Frage</button>
+            <button onclick="restartQuiz()" class="restart-btn" id="restartButton" style="display: none;">Quiz neu starten</button>
+            <div id="result"></div>
+            <div id="wrongAnswersSummary" class="wrong-answers" style="display: none;">
+                <h3>Zusammenfassung der falschen Antworten</h3>
+                <div id="wrongAnswersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Wann wurde der I2C-Bus entwickelt und von wem?",
+                options: [
+                    "1980 von Siemens",
+                    "1982 von Philips",
+                    "1985 von Intel",
+                    "1990 von IBM"
+                ],
+                correct: 1,
+                explanation: "Der I2C-Bus wurde 1982 von Philips entwickelt, um die Verkabelung in Geräten zu reduzieren."
+            },
+            {
+                question: "Welche Geräte können über den I2C-Bus kommunizieren?",
+                options: [
+                    "Nur Mikrocontroller untereinander",
+                    "Nur Sensoren und Displays",
+                    "Mikrocontroller, Sensoren, EEPROMs, Displays etc.",
+                    "Nur EEPROMs und Displays"
+                ],
+                correct: 2,
+                explanation: "Der I2C-Bus ermöglicht die Kommunikation zwischen Mikrocontrollern, Sensoren, EEPROMs, Displays und anderen Geräten."
+            },
+            {
+                question: "Wie viele Leitungen hat der I2C-Bus?",
+                options: [
+                    "1 Leitung",
+                    "2 Leitungen",
+                    "4 Leitungen",
+                    "8 Leitungen"
+                ],
+                correct: 1,
+                explanation: "Der I2C-Bus hat zwei Leitungen: SDA (Serial Data Line) und SCL (Serial Clock Line)."
+            },
+            {
+                question: "Wie wird beim I2C-Bus adressiert?",
+                options: [
+                    "Durch 4-Bit-Adresse",
+                    "Durch 7-Bit-Adresse",
+                    "Durch 8-Bit-Adresse",
+                    "Durch 16-Bit-Adresse"
+                ],
+                correct: 1,
+                explanation: "Die Adressierung erfolgt durch eine 7-Bit-Adresse, wobei die ersten 4 Bit firmenbezogen sind."
+            },
+            {
+                question: "Was ist die RS232-Schnittstelle?",
+                options: [
+                    "Ein paralleler Bus",
+                    "Eine zustandsgesteuerte serielle Schnittstelle",
+                    "Ein drahtloses Protokoll",
+                    "Ein Speicherbus"
+                ],
+                correct: 1,
+                explanation: "Die RS232-Schnittstelle ist eine zustandsgesteuerte serielle Schnittstelle, die Start-/Stoppbits und eine Baudrate verwendet."
+            },
+            {
+                question: "Was sind die Vorteile der RS232-Schnittstelle?",
+                options: [
+                    "Hohe Geschwindigkeit und parallele Datenübertragung",
+                    "Weniger Kabel, längere Leitungslänge, geringere Störanfälligkeit",
+                    "Drahtlose Übertragung und hohe Reichweite",
+                    "Bidirektionale Kommunikation ohne Taktsignal"
+                ],
+                correct: 1,
+                explanation: "Die RS232-Schnittstelle hat die Vorteile: weniger Kabel, längere Leitungslänge und geringere Störanfälligkeit."
+            },
+            {
+                question: "Was sind die wichtigsten Begriffe bei der RS232-Schnittstelle?",
+                options: [
+                    "Simplex, Halbduplex, Vollduplex, synchron/asynchron",
+                    "Master, Slave, Clock, Data",
+                    "Input, Output, Control, Status",
+                    "Send, Receive, Error, Ready"
+                ],
+                correct: 0,
+                explanation: "Wichtige Begriffe bei RS232 sind: Simplex, Halbduplex, Vollduplex, synchron/asynchron."
+            },
+            {
+                question: "Was ist ein Logikgatter?",
+                options: [
+                    "Ein elektronisches Bauteil zur Spannungsregelung",
+                    "Ein Bauteil zur Verarbeitung digitaler Signale",
+                    "Ein Speicherbaustein für binäre Daten",
+                    "Ein Bauteil zur Analog-Digital-Wandlung"
+                ],
+                correct: 1,
+                explanation: "Logikgatter sind elektronische Bauteile zur Verarbeitung digitaler Signale. Beispiele sind: UND (AND), ODER (OR), NICHT (NOT), NAND, NOR."
+            },
+            {
+                question: "Was ist die disjunktive Normalform?",
+                options: [
+                    "Eine Art von Speicher",
+                    "Eine Darstellungsform für logische Ausdrücke",
+                    "Ein Kommunikationsprotokoll",
+                    "Ein Bauteil zur Signalverarbeitung"
+                ],
+                correct: 1,
+                explanation: "Die disjunktive Normalform ist eine Darstellungsform für logische Ausdrücke, die aus ODER-Verknüpfungen von UND-Termen besteht."
+            },
+            {
+                question: "Was sind die De-Morgan-Gesetze?",
+                options: [
+                    "Gesetze zur Spannungsberechnung",
+                    "Gesetze zur Umformung von logischen Ausdrücken",
+                    "Gesetze zur Stromberechnung",
+                    "Gesetze zur Widerstandsberechnung"
+                ],
+                correct: 1,
+                explanation: "Die De-Morgan-Gesetze dienen zur Umformung von logischen Ausdrücken, z.B. ¬(A ∧ B) = ¬A ∨ ¬B."
+            },
+            {
+                question: "Was ist ein KV-Diagramm?",
+                options: [
+                    "Ein Diagramm zur Spannungsmessung",
+                    "Ein Diagramm zur Vereinfachung von logischen Gleichungen",
+                    "Ein Diagramm zur Strommessung",
+                    "Ein Diagramm zur Widerstandsmessung"
+                ],
+                correct: 1,
+                explanation: "KV-Diagramme (Karnaugh-Veitch) dienen zur Vereinfachung von logischen Gleichungen."
+            },
+            {
+                question: "Was ist der Unterschied zwischen TTL und CMOS?",
+                options: [
+                    "TTL ist schneller, CMOS ist billiger",
+                    "TTL ist älter und hat hohen Verbrauch, CMOS hat geringen Verbrauch",
+                    "TTL ist für analoge, CMOS für digitale Signale",
+                    "TTL ist für Hochfrequenz, CMOS für Niederfrequenz"
+                ],
+                correct: 1,
+                explanation: "TTL (Transistor-Transistor-Logik) ist älter und hat hohen Verbrauch, während CMOS (Metall-Oxid-Halbleiter) geringen Verbrauch, hohe Geschwindigkeit und Rauschresistenz bietet."
+            },
+            {
+                question: "Was ist ein Halbaddierer?",
+                options: [
+                    "Ein Bauteil zur Spannungsverdopplung",
+                    "Ein Bauteil zur Addition von zwei Bits",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein Halbaddierer addiert zwei Bits und liefert als Ergebnis die Summe und einen Übertrag."
+            },
+            {
+                question: "Was ist ein Volladdierer?",
+                options: [
+                    "Ein Bauteil zur Spannungsverdopplung",
+                    "Ein Bauteil zur Addition von zwei Bits plus Übertragseingang",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein Volladdierer addiert zwei Bits plus einen Übertragseingang und liefert als Ergebnis die Summe und einen neuen Übertrag."
+            },
+            {
+                question: "Was ist ein RS-Flipflop?",
+                options: [
+                    "Ein Bauteil zur Spannungsregelung",
+                    "Ein Speicherbaustein mit Set/Reset-Eingängen",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein RS-Flipflop ist ein Speicherbaustein mit Set/Reset-Eingängen, der einen Zustand speichern kann."
+            },
+            {
+                question: "Was ist ein JK-Flipflop?",
+                options: [
+                    "Ein Flipflop mit undefinierten Zuständen",
+                    "Ein Flipflop ohne undefinierte Zustände",
+                    "Ein Flipflop ohne Taktung",
+                    "Ein Flipflop ohne Speicherfunktion"
+                ],
+                correct: 1,
+                explanation: "Ein JK-Flipflop ist ein Flipflop ohne undefinierte Zustände, das die Vorteile von RS- und T-Flipflops kombiniert."
+            },
+            {
+                question: "Was ist ein D-Flipflop?",
+                options: [
+                    "Ein Flipflop mit einem Eingang",
+                    "Ein Flipflop mit zwei unabhängigen Eingängen",
+                    "Ein Flipflop ohne Taktung",
+                    "Ein Flipflop ohne Speicherfunktion"
+                ],
+                correct: 0,
+                explanation: "Ein D-Flipflop ist ein Flipflop mit einem Eingang, das den Eingangswert bei der Taktflanke übernimmt."
+            },
+            {
+                question: "Was ist ein T-Flipflop?",
+                options: [
+                    "Ein Flipflop zur Spannungsregelung",
+                    "Ein Flipflop, das bei jeder Taktflanke toggelt",
+                    "Ein Flipflop ohne Taktung",
+                    "Ein Flipflop ohne Speicherfunktion"
+                ],
+                correct: 1,
+                explanation: "Ein T-Flipflop toggelt (wechselt) seinen Ausgangszustand bei jeder Taktflanke und kann als Frequenzteiler verwendet werden."
+            },
+            {
+                question: "Was ist der Unterschied zwischen asynchronen und synchronen Zählern?",
+                options: [
+                    "Asynchrone sind schneller",
+                    "Synchrone sind billiger",
+                    "Asynchrone haben verzögerte Taktung, synchrone haben gleiche Clock",
+                    "Asynchrone sind für analoge, synchrone für digitale Signale"
+                ],
+                correct: 2,
+                explanation: "Bei asynchronen Zählern bekommt nur das erste Flipflop das Taktsignal, die weiteren folgen über ihre Ausgänge. Bei synchronen Zählern haben alle Flipflops die gleiche Clock."
+            },
+            {
+                question: "Was ist ein Schieberegister?",
+                options: [
+                    "Ein Bauteil zur Spannungsregelung",
+                    "Ein Speicher für serielle oder parallele Daten",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein Schieberegister ist ein Speicher für serielle oder parallele Daten, der mit D-Flipflops realisiert werden kann."
+            },
+            {
+                question: "Was ist ein Multiplexer?",
+                options: [
+                    "Ein Bauteil zur Spannungsregelung",
+                    "Ein Bauteil zur Auswahl eines von mehreren Eingängen",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein Multiplexer ist ein Bauteil, das mehrere Eingänge zu einem Ausgang zusammenführt. Die Auswahl erfolgt über Adressleitungen."
+            },
+            {
+                question: "Was ist ein Demultiplexer?",
+                options: [
+                    "Ein Bauteil zur Spannungsregelung",
+                    "Ein Bauteil zur Verteilung eines Eingangs auf mehrere Ausgänge",
+                    "Ein Bauteil zur Signalverstärkung",
+                    "Ein Bauteil zur Frequenzteilung"
+                ],
+                correct: 1,
+                explanation: "Ein Demultiplexer ist das Gegenstück zum Multiplexer und verteilt einen Eingang auf mehrere Ausgänge."
+            },
+            {
+                question: "Was bedeutet PWM?",
+                options: [
+                    "Pulse Width Modulation",
+                    "Power Wave Modulation",
+                    "Pulse Wave Management",
+                    "Power Width Management"
+                ],
+                correct: 0,
+                explanation: "PWM steht für Pulsweitenmodulation, bei der ein Signal schnell an/aus geschaltet wird, um z.B. Motoren oder Dimmer zu steuern."
+            },
+            {
+                question: "Was ist der Unterschied zwischen Polling und Interrupts?",
+                options: [
+                    "Polling ist schneller als Interrupts",
+                    "Interrupts sind ineffizienter als Polling",
+                    "Polling wartet aktiv, Interrupts unterbrechen das Hauptprogramm",
+                    "Es gibt keinen Unterschied"
+                ],
+                correct: 2,
+                explanation: "Polling ist ein aktives Warten mit while-Schleifen (ineffizient), während Interrupts das Hauptprogramm für kurze Service-Routinen unterbrechen."
+            },
+            {
+                question: "Was ist MQTT?",
+                options: [
+                    "Ein Speicherprotokoll",
+                    "Ein Analog-Digital-Wandler",
+                    "Ein leichtgewichtiges Kommunikationsprotokoll",
+                    "Ein Bus-System"
+                ],
+                correct: 2,
+                explanation: "MQTT ist ein leichtgewichtiges Kommunikationsprotokoll für instabile Netzwerke. Sensoren senden bei Ereignissen an einen Broker, der die Daten an alle Subscriber verteilt."
+            },
+            {
+                question: "Wie funktioniert die Datenübertragung bei MQTT?",
+                options: [
+                    "Direkt zwischen Geräten",
+                    "Über einen zentralen Broker",
+                    "Über ein Mesh-Netzwerk",
+                    "Über einen Router"
+                ],
+                correct: 1,
+                explanation: "Bei MQTT senden Sensoren bei Ereignissen an einen Broker, der die Daten an alle Subscriber verteilt. Die Struktur erfolgt durch hierarchische Topics."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let wrongAnswers = [];
+        let timer;
+        let timeLeft = 5;
+
+        function updateProgress() {
+            const progress = (currentQuestion / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('scoreDisplay').textContent = `Score: ${score}/${currentQuestion}`;
+        }
+
+        function startTimer() {
+            timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = `Verbleibende Zeit: ${timeLeft}s`;
+            timerElement.classList.remove('warning');
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = `Verbleibende Zeit: ${timeLeft}s`;
+                
+                if (timeLeft <= 2) {
+                    timerElement.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (!answered) {
+                        const result = document.getElementById('result');
+                        result.innerHTML = `<div class="result wrong">Zeit abgelaufen! Die richtige Antwort war: ${questions[currentQuestion].options[questions[currentQuestion].correct]}</div>`;
+                        wrongAnswers.push({
+                            question: questions[currentQuestion].question,
+                            yourAnswer: "Keine Antwort",
+                            correctAnswer: questions[currentQuestion].options[questions[currentQuestion].correct],
+                            explanation: questions[currentQuestion].explanation
+                        });
+                        setTimeout(nextQuestion, 1000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function displayQuestion() {
+            const questionContainer = document.getElementById('questionContainer');
+            const question = questions[currentQuestion];
+            answered = false;
+            
+            let html = `<div class="question">
+                <h3>Frage ${currentQuestion + 1} von ${questions.length}: ${question.question}</h3>
+                <div class="timer" id="timer"></div>
+                <div class="options">`;
+            
+            question.options.forEach((option, index) => {
+                html += `<button onclick="checkAnswer(${index})" id="option${index}">${option}</button>`;
+            });
+            
+            html += `</div></div>`;
+            questionContainer.innerHTML = html;
+            updateProgress();
+            startTimer();
+        }
+
+        function checkAnswer(selected) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timer);
+            
+            const result = document.getElementById('result');
+            const question = questions[currentQuestion];
+            
+            // Deaktiviere alle Buttons
+            document.querySelectorAll('.options button').forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Markiere die richtige Antwort
+            document.getElementById(`option${question.correct}`).style.backgroundColor = '#2ecc71';
+            
+            if (selected === question.correct) {
+                result.innerHTML = `<div class="result correct">Richtig! ${question.explanation}</div>`;
+                score++;
+                updateProgress();
+                
+                // Automatisch zur nächsten Frage nach kurzer Verzögerung
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            } else {
+                document.getElementById(`option${selected}`).style.backgroundColor = '#e74c3c';
+                result.innerHTML = `<div class="result wrong">Falsch! Die richtige Antwort war: ${question.options[question.correct]}<br>${question.explanation}</div>`;
+                
+                // Speichere die falsche Antwort
+                wrongAnswers.push({
+                    question: question.question,
+                    yourAnswer: question.options[selected],
+                    correctAnswer: question.options[question.correct],
+                    explanation: question.explanation
+                });
+                
+                updateProgress();
+            }
+        }
+
+        function displayWrongAnswers() {
+            const wrongAnswersList = document.getElementById('wrongAnswersList');
+            let html = '';
+            
+            wrongAnswers.forEach((item, index) => {
+                html += `
+                    <div class="wrong-answer-item">
+                        <h4>Frage ${index + 1}: ${item.question}</h4>
+                        <p>Deine Antwort: ${item.yourAnswer}</p>
+                        <p class="correct-answer">Richtige Antwort: ${item.correctAnswer}</p>
+                        <p>Erklärung: ${item.explanation}</p>
+                    </div>
+                `;
+            });
+            
+            wrongAnswersList.innerHTML = html;
+            document.getElementById('wrongAnswersSummary').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            if (!answered) {
+                clearInterval(timer);
+            }
+            
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                displayQuestion();
+                document.getElementById('result').innerHTML = '';
+            } else {
+                document.getElementById('questionContainer').innerHTML = 
+                    `<h3>Quiz beendet! Dein Score: ${score}/${questions.length}</h3>`;
+                document.getElementById('nextButton').style.display = 'none';
+                document.getElementById('restartButton').style.display = 'block';
+                displayWrongAnswers();
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            wrongAnswers = [];
+            clearInterval(timer);
+            document.getElementById('nextButton').style.display = 'block';
+            document.getElementById('restartButton').style.display = 'none';
+            document.getElementById('wrongAnswersSummary').style.display = 'none';
+            displayQuestion();
+            document.getElementById('result').innerHTML = '';
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Lern-App für Informatik',
+                    text: 'Schau dir diese coole Lern-App für Informatik an!',
+                    url: window.location.href
+                })
+                .catch(error => console.log('Fehler beim Teilen:', error));
+            } else {
+                // Fallback für Browser ohne Share API
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = window.location.href;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                alert('Link wurde in die Zwischenablage kopiert!');
+            }
+        }
+
+        // Starte das Quiz
+        displayQuestion();
+    </script>
+</body>
+</html> 
